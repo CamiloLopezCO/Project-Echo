@@ -9,5 +9,14 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
+  qdrant:
+      image: qdrant/qdrant
+      ports:
+        - 6333:6333
+        - 6334:6334
+      volumes:
+        - qdrant:/qdrant/storage
 volumes:
   pgdata:
+  qdrant:
