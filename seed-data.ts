@@ -15,9 +15,16 @@ if (!exists.exists) {
 
 type PlayerStats = {
   id: number;
+  //TODO: add this to the id or vector
+  //game: string;
   gamesPlayed: number;
   win: number;
   loss: number;
+  geo: Geo;
+};
+type Geo = {
+  lat: number;
+  lon: number;
 };
 
 async function upsertPlayer(player: PlayerStats) {
@@ -27,24 +34,26 @@ async function upsertPlayer(player: PlayerStats) {
       {
         id: player.id,
         vector: [player.gamesPlayed, player.win, player.loss, winLossRatio],
+        payload: { geo: player.geo },
       },
     ],
   });
 }
-
-const players = [
+const NewYork: Geo = { lat: 40.73, lon: -73.93 };
+const Miami: Geo = { lat: 25.79, lon: -80.13 };
+const players: PlayerStats[] = [
   // noob
-  { id: 1, gamesPlayed: 5, win: 1, loss: 4 },
+  { id: 1, gamesPlayed: 5, win: 1, loss: 4, geo: NewYork },
   // master
-  { id: 2, gamesPlayed: 10, win: 9, loss: 1 },
+  { id: 2, gamesPlayed: 10, win: 9, loss: 1, geo: Miami },
   //soldier
-  { id: 3, gamesPlayed: 20, win: 10, loss: 10 },
+  { id: 3, gamesPlayed: 20, win: 10, loss: 10, geo: NewYork },
   //soldier
-  { id: 4, gamesPlayed: 30, win: 15, loss: 15 },
+  { id: 4, gamesPlayed: 30, win: 15, loss: 15, geo: Miami },
   //master
-  { id: 5, gamesPlayed: 40, win: 30, loss: 10 },
+  { id: 5, gamesPlayed: 40, win: 30, loss: 10, geo: NewYork },
   //noob
-  { id: 6, gamesPlayed: 50, win: 10, loss: 40 },
+  { id: 6, gamesPlayed: 50, win: 10, loss: 40, geo: Miami },
 ];
 
 for (let player of players) {
