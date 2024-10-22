@@ -41,6 +41,9 @@ async function upsertPlayer(player: PlayerStats) {
 }
 const NewYork: Geo = { lat: 40.73, lon: -73.93 };
 const Miami: Geo = { lat: 25.79, lon: -80.13 };
+const California: Geo = { lat: 36.77, lon: -119.41 };
+const Wisconsin: Geo = { lat: 44.25, lon: -89.63 };
+
 const players: PlayerStats[] = [
   // noob
   { id: 1, gamesPlayed: 5, win: 1, loss: 4, geo: NewYork },
@@ -54,6 +57,18 @@ const players: PlayerStats[] = [
   { id: 5, gamesPlayed: 40, win: 30, loss: 10, geo: NewYork },
   //noob
   { id: 6, gamesPlayed: 50, win: 10, loss: 40, geo: Miami },
+  // noob
+  { id: 7, gamesPlayed: 38, win: 8, loss: 30, geo: California },
+  // master
+  { id: 8, gamesPlayed: 28, win: 24, loss: 4, geo: Wisconsin },
+  //soldier
+  { id: 9, gamesPlayed: 18, win: 9, loss: 9, geo: California },
+  //soldier
+  { id: 10, gamesPlayed: 14, win: 7, loss: 7, geo: Wisconsin },
+  //master
+  { id: 11, gamesPlayed: 8, win: 7, loss: 1, geo: California },
+  //noob
+  { id: 12, gamesPlayed: 4, win: 0, loss: 4, geo: Wisconsin },
 ];
 
 for (let player of players) {
