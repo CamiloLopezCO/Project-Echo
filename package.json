@@ -8,7 +8,13 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "postgres": "docker compose up -d",
+    "psql-docker": "docker compose exec postgres psql -U postgres postgres",
+    "psql": "PGPASSWORD=password psql -h localhost -U postgres -p 6432",
+    "structure": "tree -I node_modules",
+    "seed-data": "node --experimental-strip-types --no-warnings seed-data.ts",
+    "migrate": "node --experimental-strip-types --no-warnings migrate.mjs migrate"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.12.0",
