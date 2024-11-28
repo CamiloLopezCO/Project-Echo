@@ -1,9 +1,10 @@
 import type { MetaFunction } from "@remix-run/node";
+import { Geo, queryPlayers, type PlayerRef } from "./user-query";
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { QdrantClient } from "@qdrant/js-client-rest";
 //import pg from "pg";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 
 // POST collections/player-recommendation/points/scroll
@@ -26,92 +27,12 @@ import { useState } from "react";
 //    }
 // }
 //
-//
-type PlayerRef = {
-  id: number
-  geo: Geo
-}
-
-type PlayerStats = {
-  id: number;
-  //TODO: add this to the id or vector
-  //game: string;
-  gamesPlayed: number;
-  win: number;
-  loss: number;
-  geo: Geo;
-};
-type Geo = {
-  lat: number;
-  lon: number;
-};
-
-
-const noobId = 6
-const masterId = 5
-const queryPlayers = async (geo: Geo) => {
-  const collectionName = "player-recommendation";
-  // TO connect to Qdrant running locally
-  const client = new QdrantClient({ url: "http://127.0.0.1:6333" });
-  const results = await client.recommend(collectionName, {
-    "positive": [noobId],
-    "negative": [masterId],
-    "strategy": "average_vector",
-    "filter": {
-      "must": [
-        {
-          "key": "geo",
-          "geo_radius": {
-            "center": geo,
-            "radius": 10
-          }
-        }
-      ]
-    },
-    "limit": 10
-  })
-  // POST /collections/player-recommendation/points/query
-  return results.map(item => ({ id: item.id, geo: item.payload as Geo }))
-}
-
-// async function upsertPlayer(player: PlayerStats) {
-//   const winLossRatio = player.win / player.gamesPlayed;
-//   await client.upsert(collectionName, {
-//     points: [
-//       {
-//         id: player.id,
-//         vector: [player.gamesPlayed, player.win, player.loss, winLossRatio],
-//         payload: { geo: player.geo },
-//       },
-//     ],
-//   });
-// }
-//
-// const createCollection = async () => {
-//   const exists = await client.collectionExists(collectionName);
-//   if (!exists.exists) {
-//     console.log(`Creating collection ${collectionName}`);
-//     await client.createCollection(collectionName, {
-//       vectors: { size: 4, distance: "Cosine" },
-//     });
-//   }
-// }
-//
 
 export const meta: MetaFunction = () => {
   return [
     { title: "New Remix App" },
     { name: "description", content: "Welcome to Remix!" },
   ];
-};
-
-const user = {
-  id: 123,
-  name: "test-name2",
-};
-const user2 = {
-  id: 1234,
-  name: "camilo",
 };
 
 // const users = [user, user2];
@@ -164,17 +85,25 @@ const cities: City[] = [
 ]
 
 export default function Index() {
-  const data = useLoaderData<typeof loader>();
-  const users = data.map((user) => <div key={user.id}>{user.id}</div>);
+  const serverData = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+  const data = fetcher.data as PlayerRef[] | undefined ?? serverData
+
+
   const [lat, setLat] = useState(40.73)
   const [lon, setLon] = useState(-73.93)
 
+
   const [city, setCity] = useState(cities[0])
+  const ref = useRef<HTMLFormElement>(null)
 
   const setGeo = (city: City) => {
     setCity(city)
     setLat(city.geo.lat)
     setLon(city.geo.lon)
+    if (ref.current) {
+      fetcher.submit(ref.current)
+    }
   }
 
   //map(data, lambda x: x)
@@ -194,14 +123,24 @@ export default function Index() {
         {city.name}
       </div>
       <div className="flex flex-row">
-        <div className="m-4">
-          <div className="mb-2">Latitude</div>
-          <input value={lat} onChange={event => setLat(event.target.value)} placeholder="Latitude" autoFocus={true} className="py-2 px-2 bg-white text-black rounded-md" />
-        </div>
-        <div className="m-4">
-          <div className="mb-2">Longitude</div>
-          <input value={lon} onChange={event => setLon(event.target.value)} placeholder="Longitude" className="py-2 px-2 bg-white text-black rounded-md" />
-        </div>
+        <fetcher.Form ref={ref} method="get" action="/user-query">
+          <div className="m-4">
+
+            <div className="mb-2">Latitude</div>
+            <input name="lat" value={lat} onChange={event => {
+              fetcher.submit(event.target.form)
+              setLat(Number(event.target.value))
+            }} placeholder="Latitude" autoFocus={true} className="py-2 px-2 bg-white text-black rounded-md" />
+          </div>
+          <div className="m-4">
+            <div className="mb-2">Longitude</div>
+            <input name="lon" value={lon} onChange={event => {
+              fetcher.submit(event.target.form)
+              setLon(Number(event.target.value))
+            }}
+              placeholder="Longitude" className="py-2 px-2 bg-white text-black rounded-md" />
+          </div>
+        </fetcher.Form>
       </div>
       <div>
         {lat}
@@ -209,8 +148,17 @@ export default function Index() {
       <div>
         {lon}
       </div>
-      {users}
-    </div>
+      <div className="flex flex-col">
+        {data.map((user) =>
+          <div className="flex flex-row space-x-8 text-left " key={user.id}>
+            <div> {user.id} </div>
+            <div> {user.meta.name} </div>
+            <div> {user.meta.geo.lat} </div>
+            <div> {user.meta.geo.lon} </div>
+          </div>
+        )}
+      </div>
+    </div >
   );
 }
 
