@@ -15,6 +15,7 @@ if (!exists.exists) {
 
 type PlayerStats = {
   id: number;
+  name: string
   //TODO: add this to the id or vector
   //game: string;
   gamesPlayed: number;
@@ -34,11 +35,12 @@ async function upsertPlayer(player: PlayerStats) {
       {
         id: player.id,
         vector: [player.gamesPlayed, player.win, player.loss, winLossRatio],
-        payload: { geo: player.geo },
+        payload: { geo: player.geo, name: player.name },
       },
     ],
   });
 }
+
 const NewYork: Geo = { lat: 40.73, lon: -73.93 };
 const Miami: Geo = { lat: 25.79, lon: -80.13 };
 const California: Geo = { lat: 36.77, lon: -119.41 };
@@ -46,29 +48,29 @@ const Wisconsin: Geo = { lat: 44.25, lon: -89.63 };
 
 const players: PlayerStats[] = [
   // noob
-  { id: 1, gamesPlayed: 5, win: 1, loss: 4, geo: NewYork },
+  { id: 1, name: "Noob 1", gamesPlayed: 5, win: 1, loss: 4, geo: NewYork },
   // master
-  { id: 2, gamesPlayed: 10, win: 9, loss: 1, geo: Miami },
+  { id: 2, name: "Master 1", gamesPlayed: 10, win: 9, loss: 1, geo: Miami },
   //soldier
-  { id: 3, gamesPlayed: 20, win: 10, loss: 10, geo: NewYork },
+  { id: 3, name: "Soldier 1", gamesPlayed: 20, win: 10, loss: 10, geo: NewYork },
   //soldier
-  { id: 4, gamesPlayed: 30, win: 15, loss: 15, geo: Miami },
+  { id: 4, name: "Soldier 2", gamesPlayed: 30, win: 15, loss: 15, geo: Miami },
   //master
-  { id: 5, gamesPlayed: 40, win: 30, loss: 10, geo: NewYork },
+  { id: 5, name: "Master 2", gamesPlayed: 40, win: 30, loss: 10, geo: NewYork },
   //noob
-  { id: 6, gamesPlayed: 50, win: 10, loss: 40, geo: Miami },
+  { id: 6, name: "Noob 2", gamesPlayed: 50, win: 10, loss: 40, geo: Miami },
   // noob
-  { id: 7, gamesPlayed: 38, win: 8, loss: 30, geo: California },
+  { id: 7, name: "Noob 3", gamesPlayed: 38, win: 8, loss: 30, geo: California },
   // master
-  { id: 8, gamesPlayed: 28, win: 24, loss: 4, geo: Wisconsin },
+  { id: 8, name: "Master 3", gamesPlayed: 28, win: 24, loss: 4, geo: Wisconsin },
   //soldier
-  { id: 9, gamesPlayed: 18, win: 9, loss: 9, geo: California },
+  { id: 9, name: "Soldier 3", gamesPlayed: 18, win: 9, loss: 9, geo: California },
   //soldier
-  { id: 10, gamesPlayed: 14, win: 7, loss: 7, geo: Wisconsin },
+  { id: 10, name: "Soldier 4", gamesPlayed: 14, win: 7, loss: 7, geo: Wisconsin },
   //master
-  { id: 11, gamesPlayed: 8, win: 7, loss: 1, geo: California },
+  { id: 11, name: "Master 4", gamesPlayed: 8, win: 7, loss: 1, geo: California },
   //noob
-  { id: 12, gamesPlayed: 4, win: 0, loss: 4, geo: Wisconsin },
+  { id: 12, name: "Noob 4", gamesPlayed: 4, win: 0, loss: 4, geo: Wisconsin },
 ];
 
 for (const player of players) {
