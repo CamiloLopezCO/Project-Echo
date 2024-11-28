@@ -71,7 +71,7 @@ const players: PlayerStats[] = [
   { id: 12, gamesPlayed: 4, win: 0, loss: 4, geo: Wisconsin },
 ];
 
-for (let player of players) {
+for (const player of players) {
   await upsertPlayer(player);
 }
 //   players.map(player => {
