@@ -1,5 +1,8 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
-
+/////////////////////////////////////
+//import for Scraped JSON file
+import fs from "fs/promises";
+////////////////////////////////////
 // TO connect to Qdrant running locally
 const client = new QdrantClient({ url: "http://127.0.0.1:6333" });
 
@@ -14,8 +17,16 @@ if (!exists.exists) {
 }
 
 type PlayerStats = {
-  id: number;
-  name: string
+  account_id: number;
+  name: string;
+  //Camilo API ProPlayers added fields
+  /////////////////////////////////////
+  steamid: string;
+  profileurl: string;
+  last_login: string;
+  country_code: string;
+  is_pro: boolean;
+  ////////////////////////////////////
   //TODO: add this to the id or vector
   //game: string;
   gamesPlayed: number;
@@ -33,46 +44,177 @@ async function upsertPlayer(player: PlayerStats) {
   await client.upsert(collectionName, {
     points: [
       {
-        id: player.id,
+        id: player.account_id,
         vector: [player.gamesPlayed, player.win, player.loss, winLossRatio],
-        payload: { geo: player.geo, name: player.name },
+        payload: {
+          account_id: player.account_id,
+          name: player.name,
+          steamid: player.steamid,
+          profileurl: player.profileurl,
+          last_login: player.last_login,
+          country_code: player.country_code,
+          is_pro: player.is_pro,
+          geo: player.geo,
+        },
       },
     ],
   });
 }
 
-const NewYork: Geo = { lat: 40.73, lon: -73.93 };
-const Miami: Geo = { lat: 25.79, lon: -80.13 };
-const California: Geo = { lat: 36.77, lon: -119.41 };
-const Wisconsin: Geo = { lat: 44.25, lon: -89.63 };
+const UnitedStates: Geo = { lat: 37.09, lon: -95.71 };
+const Peru: Geo = { lat: -9.19, lon: -75.02 };
+const Brazil: Geo = { lat: -14.24, lon: -51.93 };
 
 const players: PlayerStats[] = [
   // noob
-  { id: 1, name: "Noob 1", gamesPlayed: 5, win: 1, loss: 4, geo: NewYork },
+  {
+    account_id: 1,
+    steamid: "id 1",
+    profileurl: "www.US1.com",
+    last_login: "02/02/2024",
+    country_code: "us",
+    is_pro: true,
+    name: "Noob US",
+    gamesPlayed: 10,
+    win: 1,
+    loss: 9,
+    geo: UnitedStates,
+  },
   // master
-  { id: 2, name: "Master 1", gamesPlayed: 10, win: 9, loss: 1, geo: Miami },
+  {
+    account_id: 2,
+    steamid: "id 2",
+    profileurl: "www.US2.com",
+    last_login: "05/05/2024",
+    country_code: "us",
+    is_pro: true,
+    name: "Master US",
+    gamesPlayed: 10,
+    win: 9,
+    loss: 1,
+    geo: UnitedStates,
+  },
   //soldier
-  { id: 3, name: "Soldier 1", gamesPlayed: 20, win: 10, loss: 10, geo: NewYork },
+  {
+    account_id: 3,
+    steamid: "id 3",
+    profileurl: "www.US3.com",
+    last_login: "03/03/2024",
+    country_code: "us",
+    is_pro: true,
+    name: "Soldier US",
+    gamesPlayed: 10,
+    win: 5,
+    loss: 5,
+    geo: UnitedStates,
+  },
   //soldier
-  { id: 4, name: "Soldier 2", gamesPlayed: 30, win: 15, loss: 15, geo: Miami },
+  {
+    account_id: 4,
+    steamid: "id 4",
+    profileurl: "www.PE1.com",
+    last_login: "01/01/2024",
+    country_code: "pe",
+    is_pro: true,
+    name: "Soldier PE",
+    gamesPlayed: 10,
+    win: 5,
+    loss: 5,
+    geo: Peru,
+  },
   //master
-  { id: 5, name: "Master 2", gamesPlayed: 40, win: 30, loss: 10, geo: NewYork },
+  {
+    account_id: 5,
+    steamid: "id 5",
+    profileurl: "www.PE2.com",
+    last_login: "02/02/2024",
+    country_code: "pe",
+    is_pro: true,
+    name: "Master PE",
+    gamesPlayed: 10,
+    win: 9,
+    loss: 1,
+    geo: Peru,
+  },
   //noob
-  { id: 6, name: "Noob 2", gamesPlayed: 50, win: 10, loss: 40, geo: Miami },
+  {
+    account_id: 6,
+    steamid: "id 6",
+    profileurl: "www.PE3.com",
+    last_login: "03/03/2024",
+    country_code: "pe",
+    is_pro: true,
+    name: "Noob PE",
+    gamesPlayed: 10,
+    win: 1,
+    loss: 9,
+    geo: Peru,
+  },
   // noob
-  { id: 7, name: "Noob 3", gamesPlayed: 38, win: 8, loss: 30, geo: California },
+  {
+    account_id: 7,
+    steamid: "id 7",
+    profileurl: "www.BR1.com",
+    last_login: "06/06/2024",
+    country_code: "br",
+    is_pro: true,
+    name: "Noob BR",
+    gamesPlayed: 10,
+    win: 1,
+    loss: 9,
+    geo: Brazil,
+  },
   // master
-  { id: 8, name: "Master 3", gamesPlayed: 28, win: 24, loss: 4, geo: Wisconsin },
+  {
+    account_id: 8,
+    steamid: "id 8",
+    profileurl: "www.BR2.com",
+    last_login: "07/07/2024",
+    country_code: "br",
+    is_pro: true,
+    name: "Master BR",
+    gamesPlayed: 10,
+    win: 10,
+    loss: 0,
+    geo: Brazil,
+  },
   //soldier
-  { id: 9, name: "Soldier 3", gamesPlayed: 18, win: 9, loss: 9, geo: California },
-  //soldier
-  { id: 10, name: "Soldier 4", gamesPlayed: 14, win: 7, loss: 7, geo: Wisconsin },
-  //master
-  { id: 11, name: "Master 4", gamesPlayed: 8, win: 7, loss: 1, geo: California },
-  //noob
-  { id: 12, name: "Noob 4", gamesPlayed: 4, win: 0, loss: 4, geo: Wisconsin },
+  {
+    account_id: 9,
+    steamid: "id 9",
+    profileurl: "www.BR3.com",
+    last_login: "10/10/2024",
+    country_code: "br",
+    is_pro: true,
+    name: "Soldier BR",
+    gamesPlayed: 10,
+    win: 5,
+    loss: 5,
+    geo: Brazil,
+  },
 ];
+/////////////////////////////////////////////////////////////
+// Function to insert players from a scraped JSON file
+async function insertPlayersFromJSON(filePath: string) {
+  try {
+    // Read and parse the JSON file
+    const data = await fs.readFile(filePath, "utf-8");
+    const scrapedPlayers: PlayerStats[] = JSON.parse(data);
 
+    // Iterate over each player in the JSON and upsert them into the collection
+    for (const player of scrapedPlayers) {
+      await upsertPlayer(player);
+      console.log(`Player ${player.name} upserted successfully.`);
+    }
+
+    console.log("All players from the JSON file have been upserted.");
+  } catch (error) {
+    console.error("Error inserting players from JSON file:", error);
+  }
+}
+//Call the function with the file path
+await insertPlayersFromJSON("./players.json");
+////////////////////////////////////////////////////////////////
 for (const player of players) {
   await upsertPlayer(player);
 }
