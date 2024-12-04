@@ -1,10 +1,10 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
 /////////////////////////////////////
 //import for Scraped JSON file
-import fs from "fs/promises";
+//import fs from "fs/promises";
 ////////////////////////////////////
 // TO connect to Qdrant running locally
-const client = new QdrantClient({ url: "http://127.0.0.1:6333" });
+const client = new QdrantClient({ url: "http://127.0.0.1:7333" });
 
 const collectionName = "player-recommendation";
 
@@ -45,8 +45,12 @@ async function upsertPlayer(player: PlayerStats) {
     points: [
       {
         id: player.account_id,
+        //add fields to the vector that make sence for searching, vector normalized data into numbers
         vector: [player.gamesPlayed, player.win, player.loss, winLossRatio],
+        //fields in the payload object are intended for use in the UI or in the API
         payload: {
+          win: player.win,
+          loss: player.loss,
           account_id: player.account_id,
           name: player.name,
           steamid: player.steamid,

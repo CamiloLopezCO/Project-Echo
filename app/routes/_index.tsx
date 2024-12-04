@@ -6,7 +6,6 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 //import pg from "pg";
 import { useRef, useState } from "react";
 
-
 // POST collections/player-recommendation/points/scroll
 // {
 //   "limit": 4,
@@ -17,8 +16,8 @@ import { useRef, useState } from "react";
 //         "key": "geo",
 //         "geo_radius": {
 //           "center":{
-//             "lat": 40.73, 
-//             "lon": -73.93 
+//             "lat": 40.73,
+//             "lon": -73.93
 //           },
 //           "radius": 10
 //         }
@@ -40,25 +39,34 @@ export const meta: MetaFunction = () => {
 //TODO swap with data from postgres
 async function _getUsers() {
   const { Client } = pg;
-  const client = new Client({ password: "password", user: "postgres", port: 6432 });
+  const client = new Client({
+    password: "password",
+    user: "postgres",
+    port: 6432,
+  });
   await client.connect();
 
   const res = await client.query("select id,name from player");
-  console.log(res.rows.map(row => row.message));
+  console.log(res.rows.map((row) => row.message));
   await client.end();
   return res.rows;
 }
-
+const geo = {
+  lat: -14.24,
+  lon: -51.93,
+};
 export async function loader() {
-  const geo = {
-    "lat": 40.73,
-    "lon": -73.93
-  }
   return json(await queryPlayers(geo));
 }
 // select id,name from player;
 
-const GeoButton = ({ name, onClick }: { name: string, onClick: () => void }) =>
+const GeoButton = ({
+  name,
+  onClick,
+}: {
+  name: string;
+  onClick: () => void;
+}) => (
   <button
     onClick={onClick}
     type="button"
@@ -66,99 +74,108 @@ const GeoButton = ({ name, onClick }: { name: string, onClick: () => void }) =>
   >
     {name}
   </button>
+);
 
-const NewYork: Geo = { lat: 40.73, lon: -73.93 };
-const Miami: Geo = { lat: 25.79, lon: -80.13 };
-const California: Geo = { lat: 36.77, lon: -119.41 };
-const Wisconsin: Geo = { lat: 44.25, lon: -89.63 };
+const UnitedStates: Geo = { lat: 37.09, lon: -95.71 };
+const Peru: Geo = { lat: -9.19, lon: -75.02 };
+const Brazil: Geo = { lat: -14.24, lon: -51.93 };
 
-type City = {
-  name: string
-  geo: Geo
-}
+type Country = {
+  name: string;
+  geo: Geo;
+};
 
-const cities: City[] = [
-  { name: "New York", geo: NewYork },
-  { name: "Miami", geo: Miami },
-  { name: "California", geo: California },
-  { name: "Wisconsin", geo: Wisconsin },
-]
+const countries: Country[] = [
+  { name: "UnitedStates", geo: UnitedStates },
+  { name: "Peru", geo: Peru },
+  { name: "Brazil", geo: Brazil },
+];
 
 export default function Index() {
   const serverData = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-  const data = fetcher.data as PlayerRef[] | undefined ?? serverData
+  const data = (fetcher.data as PlayerRef[] | undefined) ?? []; //?? serverData;
 
+  const [lat, setLat] = useState(geo.lat.toString());
+  const [lon, setLon] = useState(geo.lon.toString());
 
-  const [lat, setLat] = useState(40.73)
-  const [lon, setLon] = useState(-73.93)
+  const [country, setCountry] = useState(countries[0]);
+  const ref = useRef<HTMLFormElement>(null);
 
-
-  const [city, setCity] = useState(cities[0])
-  const ref = useRef<HTMLFormElement>(null)
-
-  const setGeo = (city: City) => {
-    setCity(city)
-    setLat(city.geo.lat)
-    setLon(city.geo.lon)
+  const setGeo = (country: Country) => {
+    setCountry(country);
+    setLat(country.geo.lat.toString());
+    setLon(country.geo.lon.toString());
     if (ref.current) {
-      fetcher.submit(ref.current)
+      fetcher.submit(ref.current);
     }
-  }
+  };
 
   //map(data, lambda x: x)
   //const glatreeting = "Hello"
   return (
     <div className="flex h-screen items-center flex flex-col mt-10">
       <div className="flex flex-row space-x-4">
-        {
-          cities.map((city, i) =>
-            <div key={i} className="mb-4">
-              <GeoButton name={city.name} onClick={() => setGeo(city)} />
-            </div>
-          )
-        }
+        {countries.map((country, i) => (
+          <div key={i} className="mb-4">
+            <GeoButton name={country.name} onClick={() => setGeo(country)} />
+          </div>
+        ))}
       </div>
-      <div>
-        {city.name}
-      </div>
+      <div>{country.name}</div>
       <div className="flex flex-row">
         <fetcher.Form ref={ref} method="get" action="/user-query">
           <div className="m-4">
-
             <div className="mb-2">Latitude</div>
-            <input name="lat" value={lat} onChange={event => {
-              fetcher.submit(event.target.form)
-              setLat(Number(event.target.value))
-            }} placeholder="Latitude" autoFocus={true} className="py-2 px-2 bg-white text-black rounded-md" />
+            <input
+              name="lat"
+              value={lat}
+              onChange={(event) => {
+                fetcher.submit(event.target.form);
+                setLat(event.target.value);
+              }}
+              placeholder="Latitude"
+              autoFocus={true}
+              className="py-2 px-2 bg-white text-black rounded-md"
+            />
           </div>
           <div className="m-4">
             <div className="mb-2">Longitude</div>
-            <input name="lon" value={lon} onChange={event => {
-              fetcher.submit(event.target.form)
-              setLon(Number(event.target.value))
-            }}
-              placeholder="Longitude" className="py-2 px-2 bg-white text-black rounded-md" />
+            <input
+              name="lon"
+              value={lon}
+              onChange={(event) => {
+                // fetcher.submit(event.target.form);
+                setLon(event.target.value);
+              }}
+              placeholder="Longitude"
+              className="py-2 px-2 bg-white text-black rounded-md"
+            />
           </div>
+          <button
+            onClick={(event) => {
+              if (ref.current) {
+                fetcher.submit(ref.current);
+              }
+            }}
+          >
+            Search
+          </button>
         </fetcher.Form>
       </div>
-      <div>
-        {lat}
-      </div>
-      <div>
-        {lon}
-      </div>
+      <div>{lat}</div>
+      <div>{lon}</div>
       <div className="flex flex-col">
-        {data.map((user) =>
+        {data.map((user) => (
           <div className="flex flex-row space-x-8 text-left " key={user.id}>
             <div> {user.id} </div>
             <div> {user.meta.name} </div>
             <div> {user.meta.geo.lat} </div>
             <div> {user.meta.geo.lon} </div>
+            <div> {user.meta.win} </div>
           </div>
-        )}
+        ))}
       </div>
-    </div >
+    </div>
   );
 }
-
