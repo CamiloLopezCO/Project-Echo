@@ -1,8 +1,57 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
-/////////////////////////////////////
-//import for Scraped JSON file
-//import fs from "fs/promises";
-////////////////////////////////////
+/////////new code////////////
+import axios from "axios";
+import { Client } from "pg";
+const insertProPlayers = async (players: ProPlayer[]) => {
+  const client = new Client({
+    user: "your_username",
+    host: "your_host",
+    database: "your_database",
+    password: "your_password",
+    port: 5432, // Default PostgreSQL port
+  });
+  await client.connect();
+
+  const query = `
+    INSERT INTO pro_players (
+      account_id, steamid, avatar, avatarmedium, avatarfull, profileurl, personaname,
+      last_login, full_history_time, cheese, fh_unavailable, loccountrycode, last_match_time,
+      name, country_code, fantasy_role, team_id, team_name, team_tag, is_locked, is_pro, locked_until
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+    ON CONFLICT (account_id) DO NOTHING;
+  `;
+
+  for (const player of players) {
+    await client.query(query, [
+      player.account_id,
+      player.steamid,
+      player.avatar,
+      player.avatarmedium,
+      player.avatarfull,
+      player.profileurl,
+      player.personaname,
+      player.last_login,
+      player.full_history_time,
+      player.cheese,
+      player.fh_unavailable,
+      player.loccountrycode,
+      player.last_match_time,
+      player.name,
+      player.country_code,
+      player.fantasy_role,
+      player.team_id,
+      player.team_name,
+      player.team_tag,
+      player.is_locked,
+      player.is_pro,
+      player.locked_until,
+    ]);
+  }
+
+  await client.end();
+};
+
+/////////////////////////////////////////////////
 // TO connect to Qdrant running locally
 const client = new QdrantClient({ url: "http://127.0.0.1:7333" });
 
@@ -15,6 +64,41 @@ if (!exists.exists) {
     vectors: { size: 4, distance: "Cosine" },
   });
 }
+////////////////new code could die//////////////
+type ProPlayer = {
+  account_id: number;
+  steamid: string;
+  avatar: string;
+  avatarmedium: string;
+  avatarfull: string;
+  profileurl: string;
+  personaname: string;
+  last_login: string | null;
+  full_history_time: string | null;
+  cheese: number;
+  fh_unavailable: boolean;
+  loccountrycode: string | null;
+  last_match_time: string | null;
+  name: string | null;
+  country_code: string | null;
+  fantasy_role: number | null;
+  team_id: number | null;
+  team_name: string | null;
+  team_tag: string | null;
+  is_locked: boolean;
+  is_pro: boolean;
+  locked_until: number | null;
+};
+export const fetchProPlayers = async (): Promise<ProPlayer[]> => {
+  const url = "https://api.opendota.com/api/proPlayers";
+  try {
+    const response = await axios.get<ProPlayer[]>(url);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching pro players:", error);
+    throw new Error("Failed to fetch pro players");
+  }
+};
 
 type PlayerStats = {
   account_id: number;
@@ -197,46 +281,6 @@ const players: PlayerStats[] = [
     geo: Brazil,
   },
 ];
-/////////////////////////////////////////////////////////////
-// Function to insert players from a scraped JSON file
-async function insertPlayersFromJSON(filePath: string) {
-  try {
-    // Read and parse the JSON file
-    const data = await fs.readFile(filePath, "utf-8");
-    const scrapedPlayers: PlayerStats[] = JSON.parse(data);
-
-    // Iterate over each player in the JSON and upsert them into the collection
-    for (const player of scrapedPlayers) {
-      await upsertPlayer(player);
-      console.log(`Player ${player.name} upserted successfully.`);
-    }
-
-    console.log("All players from the JSON file have been upserted.");
-  } catch (error) {
-    console.error("Error inserting players from JSON file:", error);
-  }
-}
-//Call the function with the file path
-await insertPlayersFromJSON("./players.json");
-////////////////////////////////////////////////////////////////
 for (const player of players) {
   await upsertPlayer(player);
 }
-//   players.map(player => {
-//       upsertPlayer(player)
-//   })
-
-// const limit = 100;
-// for (let i = 0; i < limit; i++) {
-//   //   client.upsert(collectionName, {
-//   //     points: [{ id: i, vector: [i + 2, i, 3, 4] }],
-//   //   });
-
-//   for (let j = 0; j < limit; j++) {
-//     const timesPlayed = Math.floor(Math.random() * 10);
-//     client.upsert(collectionName, {
-//       points: [{ id: limit * i + j, vector: [timesPlayed, 0, 0, 0] }],
-//     });
-//     console.log(limit * i + j, j);
-//   }
-// }
